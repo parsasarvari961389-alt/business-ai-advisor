@@ -1,0 +1,437 @@
+package com.businessai.advisor
+
+import android.app.Activity
+import android.os.Bundle
+import android.graphics.Color
+import android.view.Gravity
+import android.view.View
+import android.widget.*
+import android.graphics.drawable.GradientDrawable
+
+data class Question(
+    val text: String,
+    val answers: List<String>
+)
+
+class MainActivity : Activity() {
+
+    private lateinit var root: LinearLayout
+    private var index = 0
+    private val answers = mutableListOf<String>()
+
+    private val questions = listOf(
+        Question(
+            "هدف اصلی تو از این مشاوره چیست؟",
+            listOf(
+                "راه‌اندازی کسب‌وکار جدید",
+                "رشد کسب‌وکار فعلی",
+                "پیدا کردن درآمد جانبی",
+                "هنوز مطمئن نیستم"
+            )
+        ),
+        Question(
+            "تقریباً چقدر سرمایه برای شروع داری؟",
+            listOf(
+                "تقریباً صفر",
+                "کمتر از ۱۰ میلیون تومان",
+                "۱۰ تا ۱۰۰ میلیون تومان",
+                "بیشتر از ۱۰۰ میلیون تومان"
+            )
+        ),
+        Question(
+            "کدام مورد به مهارت‌های تو نزدیک‌تر است؟",
+            listOf(
+                "فروش و ارتباط با مشتری",
+                "فنی و تکنولوژی",
+                "تولید محتوا و بازاریابی",
+                "مدیریت و کار اجرایی"
+            )
+        ),
+        Question(
+            "چقدر زمان می‌توانی در روز اختصاص بدهی؟",
+            listOf(
+                "کمتر از ۲ ساعت",
+                "۲ تا ۴ ساعت",
+                "۴ تا ۸ ساعت",
+                "تمام‌وقت"
+            )
+        ),
+        Question(
+            "کدام مدل را بیشتر می‌پسندی؟",
+            listOf(
+                "کاملاً آنلاین",
+                "حضوری",
+                "ترکیبی",
+                "فرقی ندارد"
+            )
+        ),
+        Question(
+            "میزان ریسک‌پذیری تو چقدر است؟",
+            listOf(
+                "خیلی کم",
+                "متوسط",
+                "زیاد",
+                "اگر فرصت خوب باشد، زیاد"
+            )
+        )
+    )
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        showHome()
+    }
+
+    private fun base(): LinearLayout {
+        root = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(44, 48, 44, 32)
+            setBackgroundColor(Color.WHITE)
+        }
+
+        setContentView(root)
+        return root
+    }
+
+    private fun text(
+        s: String,
+        size: Float,
+        bold: Boolean = false
+    ): TextView {
+
+        return TextView(this).apply {
+            text = s
+            textSize = size
+            setTextColor(Color.rgb(23, 32, 42))
+
+            if (bold) {
+                setTypeface(null, 1)
+            }
+
+            gravity = Gravity.RIGHT
+            setPadding(0, 8, 0, 8)
+        }
+    }
+
+    private fun button(
+        s: String,
+        onClick: () -> Unit
+    ): Button {
+
+        return Button(this).apply {
+            text = s
+            textSize = 16f
+            setTextColor(Color.WHITE)
+
+            backgroundResource =
+                com.businessai.advisor.R.drawable.button_bg
+
+            setOnClickListener {
+                onClick()
+            }
+
+            layoutParams = LinearLayout.LayoutParams(
+                -1,
+                60
+            ).apply {
+                topMargin = 14
+            }
+        }
+    }
+
+    private fun showHome() {
+
+        val r = base()
+
+        val logo = text(
+            "BA",
+            24f,
+            true
+        )
+
+        logo.gravity = Gravity.CENTER
+        logo.setTextColor(Color.WHITE)
+        logo.setBackgroundColor(
+            Color.rgb(17, 24, 39)
+        )
+
+        r.addView(
+            logo,
+            LinearLayout.LayoutParams(
+                130,
+                130
+            ).apply {
+                bottomMargin = 28
+            }
+        )
+
+        r.addView(
+            text(
+                "مشاور کسب‌وکار AI",
+                30f,
+                true
+            )
+        )
+
+        r.addView(
+            text(
+                "چند سؤال هوشمندانه از تو می‌پرسیم، " +
+                "شرایطت را تحلیل می‌کنیم و در پایان " +
+                "یک مسیر کسب‌وکار متناسب با تو می‌سازیم.",
+                17f
+            )
+        )
+
+        val space = Space(this)
+
+        r.addView(
+            space,
+            LinearLayout.LayoutParams(
+                1,
+                0,
+                1f
+            )
+        )
+
+        r.addView(
+            button("شروع مشاوره") {
+                showQuestion()
+            }
+        )
+    }
+
+    private fun showQuestion() {
+
+        val r = base()
+
+        r.addView(
+            text(
+                "سؤال ${index + 1} از ${questions.size}",
+                14f
+            )
+        )
+
+        val bar = ProgressBar(
+            this,
+            null,
+            android.R.attr.progressBarStyleHorizontal
+        )
+
+        bar.max = 100
+        bar.progress =
+            (index * 100 / questions.size)
+
+        r.addView(
+            bar,
+            LinearLayout.LayoutParams(
+                -1,
+                10
+            ).apply {
+                bottomMargin = 24
+            }
+        )
+
+        r.addView(
+            text(
+                questions[index].text,
+                24f,
+                true
+            )
+        )
+
+        val group = RadioGroup(this)
+
+        group.orientation =
+            RadioGroup.VERTICAL
+
+        questions[index].answers.forEach { answer ->
+
+            val rb = RadioButton(this).apply {
+                text = answer
+                textSize = 16f
+                setPadding(
+                    10,
+                    20,
+                    10,
+                    20
+                )
+            }
+
+            group.addView(rb)
+        }
+
+        r.addView(group)
+
+        val space = Space(this)
+
+        r.addView(
+            space,
+            LinearLayout.LayoutParams(
+                1,
+                0,
+                1f
+            )
+        )
+
+        val next = button(
+            if (index == questions.lastIndex)
+                "ساخت پیشنهاد"
+            else
+                "ادامه"
+        ) {}
+
+        next.setOnClickListener {
+
+            val checked =
+                group.checkedRadioButtonId
+
+            if (checked == -1) {
+
+                Toast.makeText(
+                    this,
+                    "یک گزینه را انتخاب کن",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                return@setOnClickListener
+            }
+
+            answers.add(
+                group
+                    .findViewById<RadioButton>(checked)
+                    .text
+                    .toString()
+            )
+
+            if (index < questions.lastIndex) {
+
+                index++
+                showQuestion()
+
+            } else {
+
+                showResult()
+            }
+        }
+
+        r.addView(next)
+    }
+
+    private fun showResult() {
+
+        val r = base()
+
+        r.addView(
+            text(
+                "پیشنهاد اصلی",
+                14f,
+                true
+            )
+        )
+
+        val low =
+            answers.getOrNull(1)
+                ?.startsWith("تقریباً صفر") == true ||
+            answers.getOrNull(1)
+                ?.startsWith("کمتر") == true
+
+        r.addView(
+            text(
+                if (low)
+                    "خدمات دیجیتال و AI برای کسب‌وکارهای کوچک"
+                else
+                    "یک کسب‌وکار تخصصی با مدل ترکیبی آنلاین و حضوری",
+                25f,
+                true
+            )
+        )
+
+        r.addView(
+            text(
+                "91٪  |  میزان تناسب با پروفایل شما",
+                20f,
+                true
+            )
+        )
+
+        r.addView(
+            text(
+                "چرا این پیشنهاد؟",
+                18f,
+                true
+            )
+        )
+
+        r.addView(
+            text(
+                "بر اساس سرمایه، مهارت‌ها، زمان و مدل کاری انتخاب‌شده، " +
+                "این مسیر قابلیت شروع مرحله‌ای و آزمایش سریع دارد.",
+                16f
+            )
+        )
+
+        r.addView(
+            text(
+                "روش درآمدزایی",
+                18f,
+                true
+            )
+        )
+
+        r.addView(
+            text(
+                "فروش خدمات یا اشتراک ماهانه و سپس تبدیل " +
+                "خدمات پرتکرار به یک محصول.",
+                16f
+            )
+        )
+
+        r.addView(
+            text(
+                "برنامه ۳۰ روزه",
+                18f,
+                true
+            )
+        )
+
+        r.addView(
+            text(
+                "هفته ۱: انتخاب بازار هدف\n" +
+                "هفته ۲: ساخت پیشنهاد\n" +
+                "هفته ۳: جذب اولین مشتری\n" +
+                "هفته ۴: اندازه‌گیری و بهبود",
+                16f
+            )
+        )
+
+        val space = Space(this)
+
+        r.addView(
+            space,
+            LinearLayout.LayoutParams(
+                1,
+                0,
+                1f
+            )
+        )
+
+        r.addView(
+            button("این ایده را عمیق‌تر بررسی کن") {
+
+                Toast.makeText(
+                    this,
+                    "در نسخه AI، اینجا دور دوم سؤال‌های تخصصی شروع می‌شود.",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        )
+
+        r.addView(
+            button("مشاوره جدید") {
+
+                index = 0
+                answers.clear()
+                showHome()
+            }
+        )
+    }
+}
